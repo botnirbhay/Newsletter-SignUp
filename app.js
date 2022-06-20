@@ -3,6 +3,8 @@ const bodyParser=require("body-parser");
 const request=require("request");
 const { application } = require("express");
 const app=express();
+const https=require("https");
+const { url } = require("inspector");
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended:true}));
 app.get("/",function(req,res)
@@ -12,17 +14,42 @@ app.get("/",function(req,res)
 });
 app.post("/",function(req,res)
 {
-    var firstName=req.body.fname;
-    var lastName=req.body.lname;
-    var email=req.body.email;
-    console.log(firstName,lastName,email);
+    const firstName=req.body.fname;
+    const lastName=req.body.lname;
+    const email=req.body.email;
+    const data={
+        members:[
+            {
+                email_address:email,
+                status :"subscribed",
+                merge_fields :
+                {
+                    FNAME : firstName,
+                    LNAME : lastName
+                },
+            }
+
+        ]
+    };
+    const jsonData=JSON.stringify(data);
+    const url="https://us11.api.mailchimp.com/3.0/lists/0233ab81a1";
+    const options={
+        method :"POST",
+        auth:"nirzi:6e98b127c20a51dcc931ccff377c5ef4-us11",
+    }
+    const request=https.request(url,options,function(response)
+    {
+        response.on("data",function(data)
+        {
+            
+            console.log(JSON.parse(data));
+        })
+    });
+    request.write(jsonData);
+    request.end();
+    
 
 });
-
-
-
-
-
 
 
 
@@ -33,3 +60,6 @@ app.listen(3000,function()
 {
     console.log("Server running on 3000");
 });
+
+//6e98b127c20a51dcc931ccff377c5ef4-us11
+// 0233ab81a1
